@@ -21,8 +21,8 @@
 
 1. 克隆仓库
    ```
-   git clone https://github.com/yourusername/deep_research_agent.git
-   cd deep_research_agent
+   git clone https://github.com/hcxxxxxx/drdemo.git
+   cd drdemo
    ```
 
 2. 创建虚拟环境并安装依赖
@@ -49,7 +49,7 @@
 ## 系统架构
 
 ```
-deep_research_agent/
+drdemo/
 ├── app/                 # 前端界面
 ├── backend/             # 后端服务
 │   ├── api/             # API端点定义
