@@ -1,0 +1,142 @@
+/* DeepResearch Agent 样式表 */
+
+/* 全局样式 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* 头部样式 */
+header {
+    background: linear-gradient(135deg, #2c55fb 0%, #1a3ba0 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background: linear-gradient(to right, #2c55fb, #5a77f3);
+    border: none;
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(to right, #1a3ba0, #2c55fb);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+    background: linear-gradient(to right, #6c757d, #8a8f94);
+    border: none;
+}
+
+/* 进度条样式 */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    background: linear-gradient(to right, #2c55fb, #5a77f3);
+    box-shadow: 0 0 10px rgba(44, 85, 251, 0.5);
+}
+
+/* 研究报告样式 */
+#reportTopic {
+    color: #1a3ba0;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.h5.bg-light {
+    background-color: #f1f3f5 !important;
+    border-left: 4px solid #2c55fb;
+}
+
+#keyFindings .list-group-item {
+    border: none;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+#keyFindings .list-group-item:before {
+    content: "• ";
+    color: #2c55fb;
+    font-weight: bold;
+    display: inline-block; 
+    width: 1em;
+}
+
+#sources .list-group-item {
+    border: none;
+    padding: 0.5rem 1.25rem;
+}
+
+#sources .list-group-item a {
+    color: #2c55fb;
+    text-decoration: none;
+}
+
+#sources .list-group-item a:hover {
+    text-decoration: underline;
+}
+
+/* 研究步骤手风琴样式 */
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+    color: #1a3ba0;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0, 0, 0, 0.125);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    header {
+        padding: 1.5rem 0;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+}
