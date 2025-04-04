@@ -27,6 +27,7 @@ class VectorStore:
         self.index = None
         self.documents = []
         self.urls = []
+        self.titles = []  # 添加标题存储
         self.initialize_index()
         
     def initialize_index(self):
@@ -48,11 +49,13 @@ class VectorStore:
         # 提取可用的文档内容
         docs = []
         urls = []
+        titles = []  # 添加标题列表
         
         for result in search_results:
             if result.content:
                 docs.append(result.content)
                 urls.append(result.url)
+                titles.append(result.title)  # 存储标题
                 
         # 没有有效的文档内容，直接返回
         if not docs:
@@ -65,9 +68,10 @@ class VectorStore:
         # 添加到FAISS索引
         self.index.add(np.array(embeddings).astype('float32'))
         
-        # 存储文档和URL
+        # 存储文档、URL和标题
         self.documents.extend(docs)
         self.urls.extend(urls)
+        self.titles.extend(titles)  # 存储标题
         
         logger.info(f"成功添加 {len(docs)} 个文档到向量存储")
         
@@ -79,7 +83,7 @@ class VectorStore:
             k: 返回的结果数量
             
         Returns:
-            包含文档内容和URL的字典列表
+            包含文档内容、URL和标题的字典列表
         """
         if not self.documents:
             logger.warning("向量存储为空，无法执行搜索")
@@ -100,6 +104,7 @@ class VectorStore:
                 results.append({
                     "content": self.documents[idx],
                     "url": self.urls[idx],
+                    "title": self.titles[idx] if idx < len(self.titles) else "",  # 返回标题
                     "distance": float(distances[0][i])
                 })
                 

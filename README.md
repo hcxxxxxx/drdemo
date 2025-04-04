@@ -27,8 +27,8 @@
 
 2. 创建虚拟环境并安装依赖
    ```
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   conda create --name drdemo python=3.8
+   conda activate drdemo
    pip install -r requirements.txt
    ```
 

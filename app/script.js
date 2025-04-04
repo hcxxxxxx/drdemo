@@ -38,6 +38,33 @@ const START_RESEARCH_URL = `${API_BASE_URL}/api/research/start`;
 const GET_STATUS_URL = `${API_BASE_URL}/api/research/status/`;
 
 /**
+ * 将Markdown文本转换为HTML
+ * @param {string} markdown - Markdown格式的文本
+ * @return {string} - 转换后的HTML
+ */
+function markdownToHtml(markdown) {
+    if (!markdown) return '';
+    
+    // 替换标题
+    markdown = markdown.replace(/^### (.*$)/gm, '<h5>$1</h5>');
+    markdown = markdown.replace(/^## (.*$)/gm, '<h4>$1</h4>');
+    markdown = markdown.replace(/^# (.*$)/gm, '<h3>$1</h3>');
+    
+    // 替换粗体和斜体
+    markdown = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    markdown = markdown.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // 替换列表
+    markdown = markdown.replace(/^\d+\.\s+(.*$)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/^-\s+(.*$)/gm, '<li>$1</li>');
+    
+    // 替换换行符
+    markdown = markdown.replace(/\n/g, '<br>');
+    
+    return markdown;
+}
+
+/**
  * 初始化页面
  */
 function init() {
@@ -218,19 +245,19 @@ function showResults(status) {
     
     // 填充报告内容
     reportTopic.textContent = status.report.topic;
-    reportSummary.textContent = status.report.summary;
+    reportSummary.innerHTML = markdownToHtml(status.report.summary);
     
     // 填充关键发现
     keyFindings.innerHTML = '';
     status.report.key_findings.forEach(finding => {
         const li = document.createElement('li');
         li.className = 'list-group-item';
-        li.textContent = finding;
+        li.innerHTML = markdownToHtml(finding);
         keyFindings.appendChild(li);
     });
     
-    // 填充详细分析
-    detailedAnalysis.innerHTML = status.report.detailed_analysis.replace(/\n/g, '<br>');
+    // 填充详细分析，转换Markdown为HTML
+    detailedAnalysis.innerHTML = markdownToHtml(status.report.detailed_analysis);
     
     // 填充研究步骤
     researchSteps.innerHTML = '';
@@ -250,7 +277,7 @@ function showResults(status) {
                 <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" 
                      data-bs-parent="#researchSteps">
                     <div class="accordion-body">
-                        <p>${step.answer.replace(/\n/g, '<br>')}</p>
+                        <p>${markdownToHtml(step.answer)}</p>
                         <p class="mt-2 text-muted small">
                             <strong>来源:</strong> ${step.sources.length > 0 ? step.sources.join(', ') : '无特定来源'}
                         </p>
@@ -265,7 +292,9 @@ function showResults(status) {
     status.report.sources.forEach(source => {
         const li = document.createElement('li');
         li.className = 'list-group-item';
-        li.innerHTML = `<a href="${source.url}" target="_blank">${source.title || source.url}</a>`;
+        // 显示标题（如果存在）或URL
+        const linkText = source.title && source.title !== '' ? source.title : source.url;
+        li.innerHTML = `<a href="${source.url}" target="_blank">${linkText}</a>`;
         sources.appendChild(li);
     });
 }

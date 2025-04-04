@@ -43,14 +43,17 @@ class SearchTool:
             logger.error(f"搜索失败: {str(e)}")
             return []
     
-    def get_webpage_content(self, url: str) -> Optional[str]:
-        """获取网页内容并提取文本。"""
+    def get_webpage_content(self, url: str) -> Optional[Dict[str, str]]:
+        """获取网页内容并提取文本与标题。"""
         try:
             logger.info(f"获取网页内容: {url}")
             response = requests.get(url, headers=self.headers, timeout=10)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 提取页面标题
+            title = soup.title.string.strip() if soup.title else ""
             
             # 移除脚本和样式元素
             for script in soup(["script", "style"]):
@@ -68,7 +71,7 @@ class SearchTool:
             if len(text) > MAX_CONTENT_LENGTH:
                 text = text[:MAX_CONTENT_LENGTH] + "..."
                 
-            return text
+            return {"content": text, "title": title}
         except Exception as e:
             logger.error(f"获取网页内容失败 {url}: {str(e)}")
             return None
@@ -76,9 +79,12 @@ class SearchTool:
     async def enrich_search_results(self, search_results: List[SearchResult]) -> List[SearchResult]:
         """异步获取每个搜索结果的完整网页内容。"""
         async def _get_content(result: SearchResult) -> SearchResult:
-            content = self.get_webpage_content(result.url)
-            if content:
-                result.content = content
+            content_data = self.get_webpage_content(result.url)
+            if content_data:
+                result.content = content_data["content"]
+                # 如果网页有标题，则使用网页标题，否则保留搜索结果的标题
+                if content_data["title"]:
+                    result.title = content_data["title"]
             return result
         
         tasks = [asyncio.create_task(_get_content(result)) for result in search_results]

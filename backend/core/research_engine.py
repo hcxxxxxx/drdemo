@@ -244,13 +244,35 @@ class ResearchEngine:
             
             report_data = self.llm_tool.generate_report(request.topic, research_findings)
             
+            # 创建源信息映射表，保存URL和对应的标题
+            source_info = {}
+            for step in analysis_steps:
+                for i, url in enumerate(step.sources):
+                    if url not in source_info and "example.com" not in url:
+                        # 查找是否有该URL的标题
+                        for doc in relevant_docs:
+                            if doc["url"] == url and "title" in doc:
+                                source_info[url] = doc["title"]
+                                break
+            
+            # 更新sources数据，添加实际网页标题
+            updated_sources = []
+            for source in report_data["sources"]:
+                if source["url"] in source_info and source_info[source["url"]]:
+                    updated_sources.append({
+                        "url": source["url"],
+                        "title": source_info[source["url"]]
+                    })
+                else:
+                    updated_sources.append(source)
+            
             # 创建最终报告
             report = ResearchReport(
                 topic=request.topic,
                 summary=report_data["summary"],
                 key_findings=report_data["key_findings"],
                 detailed_analysis=report_data["detailed_analysis"],
-                sources=report_data["sources"],
+                sources=updated_sources,
                 analysis_steps=analysis_steps,
                 created_at=datetime.now()
             )

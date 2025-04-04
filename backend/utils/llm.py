@@ -154,49 +154,29 @@ class LLMTool:
         return questions[:num_questions]  # 确保返回的问题数量不超过要求
     
     def generate_report(self, topic: str, research_findings: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """生成研究报告。
+        """根据研究发现生成最终报告。
         
         Args:
             topic: 研究主题
-            research_findings: 研究发现列表，每个元素包含问题和答案
+            research_findings: 研究发现列表
             
         Returns:
-            生成的研究报告
+            包含报告各部分的字典
         """
-        logger.info(f"为主题 '{topic}' 生成研究报告")
+        # 构建系统提示
+        system_prompt = """你是一个专业的研究报告生成助手。你会分析研究发现，并生成高质量、结构化的研究报告。
+        报告应当客观、详实，具有科学性和可读性。确保内容逻辑连贯，观点明确，避免重复冗余。"""
         
-        # 检查研究发现是否足够
-        has_sufficient_content = True
-        if not research_findings or len(research_findings) < 2:
-            has_sufficient_content = False
-            logger.warning(f"主题 '{topic}' 的研究发现不足")
-        
-        # 将研究发现格式化为字符串
+        # 构建用户提示
         findings_text = ""
         for i, finding in enumerate(research_findings):
-            findings_text += f"\n问题 {i+1}: {finding['question']}\n"
+            findings_text += f"问题 {i+1}: {finding['question']}\n"
             findings_text += f"回答: {finding['answer']}\n"
-            if 'sources' in finding and finding['sources']:
-                findings_text += f"来源: {', '.join(finding['sources'])}\n"
-        
-        system_prompt = """
-        你是一个专业的研究报告撰写专家。我将给你一个研究主题和一系列研究发现。
-        请根据这些信息生成一份全面的研究报告，包括摘要、关键发现、详细分析和参考来源。
-        报告应该客观、结构清晰、内容连贯，并清晰地呈现得到的洞察。
-        
-        如果研究发现中有"请使用你的知识"等提示，表示该部分缺乏外部来源的信息。
-        在这种情况下，你应该:
-        1. 使用你自己的知识填补空白
-        2. 确保报告内容丰富、信息量大
-        3. 尽量提供相关的数据点、例子和见解
-        4. 避免说"内容不足"或"没有足够信息"等消极表述
-        
-        无论如何，请确保最终报告对用户有用、有见地，并展示对主题的深入理解。
-        """
+            findings_text += f"来源: {', '.join(finding['sources'])}\n\n"
         
         user_prompt = f"""
-        研究主题: {topic}
-        
+        我需要一份关于"{topic}"的研究报告。
+
         研究发现:
         {findings_text}
         
@@ -204,6 +184,12 @@ class LLMTool:
         1. 摘要 - 简要概述研究内容和主要发现（200-300字）
         2. 关键发现 - 列出3-5个最重要的发现点，每点一段话
         3. 详细分析 - 深入分析研究主题，整合所有发现，应包含事实、数据和具体例子
+        
+        对于详细分析部分:
+        - 使用明确的章节标题（例如 # 标题）
+        - 使用有序列表（1. 2. 3.）来组织内容，确保序号连续不重复
+        - 避免内容重复，整合相似观点
+        - 合理分段，每段聚焦一个明确的要点
         
         确保报告内容全面、有逻辑性，并且信息丰富。如果研究发现不足，请使用你的知识补充相关内容。
         """
@@ -251,7 +237,7 @@ class LLMTool:
                     if key_findings:
                         key_findings[-1] += " " + line
             elif current_section == "detailed_analysis":
-                detailed_analysis += line + " "
+                detailed_analysis += line + "\n"
         
         # 确保至少有一些关键发现
         if not key_findings:
@@ -279,7 +265,7 @@ class LLMTool:
             if 'sources' in finding and finding['sources']:
                 for source in finding['sources']:
                     if source not in [s.get('url', '') for s in sources] and 'example.com' not in source:
-                        # 为每个来源添加标题
+                        # 使用SearchTool中获取的标题，如果没有则使用默认标题
                         title = f"关于 {topic} 的资料"
                         if len(sources) > 0:
                             title += f" {len(sources) + 1}"
