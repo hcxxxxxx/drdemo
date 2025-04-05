@@ -9,6 +9,7 @@ class ResearchRequest(BaseModel):
     topic: str = Field(..., description="研究主题或问题")
     depth: int = Field(3, description="研究深度级别（1-5）")
     max_sources: int = Field(10, description="最大信息源数量")
+    academic_only: bool = Field(False, description="是否仅搜索学术资源")
     
 class SearchResult(BaseModel):
     """搜索结果模型。"""

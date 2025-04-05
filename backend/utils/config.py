@@ -20,6 +20,42 @@ OPENAI_API_MODEL = os.getenv("OPENAI_API_MODEL", "gpt-4o-mini")
 MAX_SEARCH_RESULTS = int(os.getenv("MAX_SEARCH_RESULTS", "10"))
 MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", "4000"))
 
+# 学术搜索设置
+ACADEMIC_SEARCH_ENABLED = os.getenv("ACADEMIC_SEARCH_ENABLED", "True").lower() in ["true", "1", "yes"]
+# 学术网站列表
+ACADEMIC_SITES = [
+    "arxiv.org",           # arXiv预印本
+    "scholar.google.com",  # 谷歌学术
+    "ieee.org",            # IEEE
+    "acm.org",             # ACM
+    "springer.com",        # Springer
+    "sciencedirect.com",   # Science Direct
+    "nature.com",          # Nature
+    "science.org",         # Science
+    "ncbi.nlm.nih.gov",    # PubMed
+    "researchgate.net",    # ResearchGate
+    "semanticscholar.org", # Semantic Scholar
+    "dl.acm.org",          # ACM数字图书馆
+    "ieeexplore.ieee.org", # IEEE Xplore
+    "jstor.org",           # JSTOR
+    "ssrn.com",            # SSRN
+    "pnas.org",            # PNAS
+    "aps.org",             # 美国物理学会
+    "wiley.com",           # Wiley
+    "tandfonline.com",     # Taylor & Francis
+    "oup.com",             # Oxford University Press
+    "cell.com",            # Cell
+    "cnki.net",            # 中国知网
+    "wanfangdata.com.cn",  # 万方数据
+    "aclweb.org",          # ACL
+    "neurips.cc",          # NeurIPS
+    "mlr.press",           # JMLR
+    "mdpi.com",            # MDPI
+    "frontiersin.org",     # Frontiers
+    "elsevier.com",        # Elsevier
+    "biorxiv.org",         # bioRxiv
+]
+
 # Web服务设置
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))

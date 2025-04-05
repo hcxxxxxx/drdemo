@@ -30,30 +30,56 @@ class LLMTool:
         self.model_name = model_name
         self.chat_model = ChatOpenAI(model_name=model_name, openai_api_key=OPENAI_API_KEY, base_url=OPENAI_API_BASE_URL)
         
-    def generate_search_queries(self, research_topic: str, num_queries: int = 3) -> List[str]:
-        """基于研究主题生成搜索查询。
+    def generate_search_queries(self, topic: str, num_queries: int = 3, academic_search: bool = False) -> List[str]:
+        """生成搜索查询。
         
         Args:
-            research_topic: 研究主题
+            topic: 研究主题
             num_queries: 生成的查询数量
+            academic_search: 是否为学术搜索
             
         Returns:
             生成的搜索查询列表
         """
-        logger.info(f"为主题 '{research_topic}' 生成搜索查询")
+        logger.info(f"为主题 '{topic}' 生成搜索查询")
         
-        system_prompt = """
-        你是一个专业的研究助手。我将给你一个研究主题，请生成具体的搜索查询，以便从互联网获取相关信息。
-        查询应该具体、有针对性，并覆盖主题的不同方面。每个查询都应该是一个完整的搜索词，不要包含引号或特殊格式。
-        """
-        
-        user_prompt = f"""
-        研究主题: {research_topic}
-        
-        请生成 {num_queries} 个不同的搜索查询，以获取关于这个主题的全面信息。确保查询覆盖该主题的不同方面和角度。
-        
-        格式: 每行一个查询，不要包含数字或标点符号前缀。
-        """
+        if academic_search:
+            system_prompt = """
+            你是一个专业的学术研究助手。给定一个研究主题，你的任务是生成能够找到高质量学术论文和资源的搜索查询。
+            这些查询将用于在学术数据库和论文来源（如arXiv、IEEE、ACM、Springer等）中搜索相关研究。
+            查询应该包含适合学术搜索的术语和关键字，能够返回高质量的研究论文、会议论文、期刊文章等。
+            """
+            
+            user_prompt = f"""
+            请为研究主题 "{topic}" 生成 {num_queries} 个可用于学术搜索引擎的查询。
+            这些查询将用于查找与该主题相关的学术论文、研究报告和科学文献。
+            
+            请确保查询：
+            1. 使用学术术语和关键字
+            2. 专注于发现研究论文、会议论文、期刊文章等
+            3. 覆盖主题的不同方面
+            4. 避免使用非学术性的术语
+            5. 使用英文（因为大多数学术数据库以英文为主）
+            
+            仅输出查询字符串，每行一个，不要包含任何标号或额外解释。
+            """
+        else:
+            system_prompt = """
+            你是一个专业的研究助手。给定一个研究主题，你的任务是生成能够找到相关信息的搜索查询。
+            这些查询将用于在搜索引擎中搜索相关信息。查询应该能够返回全面且多样的信息。
+            """
+            
+            user_prompt = f"""
+            请为研究主题 "{topic}" 生成 {num_queries} 个搜索查询。
+            这些查询将用于查找与该主题相关的信息。
+            
+            请确保查询：
+            1. 使用明确的关键词
+            2. 涵盖主题的不同方面
+            3. 能够返回高质量的信息
+            
+            仅输出查询字符串，每行一个，不要包含任何标号或额外解释。
+            """
         
         messages = [
             SystemMessage(content=system_prompt),
@@ -62,11 +88,34 @@ class LLMTool:
         
         response = self.chat_model(messages)
         
-        # 解析返回的查询
-        queries = [q.strip() for q in response.content.split('\n') if q.strip()]
+        # 解析响应，获取查询列表
+        queries = [
+            line.strip() for line in response.content.strip().split("\n")
+            if line.strip()
+        ]
         
-        logger.info(f"生成了 {len(queries)} 个搜索查询")
-        return queries[:num_queries]  # 确保返回的查询数量不超过要求
+        # 确保我们有足够的查询
+        if len(queries) < num_queries:
+            # 如果生成的查询数量不足，添加一些基本查询
+            if academic_search:
+                default_queries = [
+                    f"{topic} research papers",
+                    f"{topic} scientific review",
+                    f"latest research on {topic}"
+                ]
+            else:
+                default_queries = [
+                    topic,
+                    f"{topic} 概述",
+                    f"{topic} 最新进展"
+                ]
+            queries.extend(default_queries[:num_queries - len(queries)])
+        
+        # 只返回请求的数量
+        queries = queries[:num_queries]
+        
+        logger.info(f"生成的搜索查询: {', '.join(queries)}")
+        return queries
     
     def analyze_content(self, content: str, question: str) -> str:
         """分析内容，回答特定问题。

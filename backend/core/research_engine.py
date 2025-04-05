@@ -83,18 +83,26 @@ class ResearchEngine:
             # 更新状态
             self._update_status(research_id, "生成搜索查询", 0.1)
             
+            # 如果启用了学术搜索，更新状态消息
+            search_mode = "学术" if request.academic_only else "普通"
+            
             # 步骤1: 生成初始搜索查询
             search_queries = self.llm_tool.generate_search_queries(
                 request.topic, 
-                num_queries=3
+                num_queries=3,
+                academic_search=request.academic_only
             )
             
             # 步骤2: 执行初始搜索
-            self._update_status(research_id, "执行网络搜索", 0.2)
+            self._update_status(research_id, f"执行{search_mode}网络搜索", 0.2)
             all_search_results = []
             
             for query in search_queries:
-                search_results = self.search_tool.search(query)
+                search_results = self.search_tool.search(
+                    query, 
+                    max_results=request.max_sources, 
+                    academic_only=request.academic_only
+                )
                 all_search_results.extend(search_results)
             
             # 步骤3: 丰富搜索结果
@@ -114,9 +122,12 @@ class ResearchEngine:
             
             # 如果没有足够的相关文档，执行额外搜索
             if len(relevant_docs) < 2:
-                self._update_status(research_id, "执行额外初步搜索", 0.55)
+                self._update_status(research_id, f"执行额外{search_mode}搜索", 0.55)
                 extra_query = f"{request.topic} 概述 主要观点"
-                extra_search_results = self.search_tool.search(extra_query)
+                extra_search_results = self.search_tool.search(
+                    extra_query, 
+                    academic_only=request.academic_only
+                )
                 enriched_extra = await self.search_tool.enrich_search_results(extra_search_results)
                 self.vector_store.add_documents(enriched_extra)
                 # 重新检索
@@ -125,14 +136,26 @@ class ResearchEngine:
             # 检查内容质量
             content_quality = sum([len(doc["content"].strip()) for doc in relevant_docs])
             if content_quality < 1000:  # 如果总内容少于1000字符，再次尝试不同的搜索
-                self._update_status(research_id, "尝试备选搜索策略", 0.56)
-                backup_queries = [
-                    f"{request.topic} 详解",
-                    f"{request.topic} 最新进展",
-                    f"什么是 {request.topic}"
-                ]
+                self._update_status(research_id, f"尝试备选{search_mode}搜索策略", 0.56)
+                
+                if request.academic_only:
+                    backup_queries = [
+                        f"{request.topic} research paper",
+                        f"{request.topic} scientific review",
+                        f"{request.topic} latest findings"
+                    ]
+                else:
+                    backup_queries = [
+                        f"{request.topic} 详解",
+                        f"{request.topic} 最新进展",
+                        f"什么是 {request.topic}"
+                    ]
+                    
                 for query in backup_queries:
-                    backup_results = self.search_tool.search(query)
+                    backup_results = self.search_tool.search(
+                        query,
+                        academic_only=request.academic_only
+                    )
                     enriched_backup = await self.search_tool.enrich_search_results(backup_results)
                     self.vector_store.add_documents(enriched_backup)
                 
@@ -197,7 +220,10 @@ class ResearchEngine:
                     ]
                     
                     for variant in search_variants:
-                        extra_search_results = self.search_tool.search(variant)
+                        extra_search_results = self.search_tool.search(
+                            variant,
+                            academic_only=request.academic_only
+                        )
                         enriched_extra = await self.search_tool.enrich_search_results(extra_search_results)
                         if enriched_extra:  # 如果找到了内容
                             self.vector_store.add_documents(enriched_extra)

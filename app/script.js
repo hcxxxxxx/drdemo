@@ -7,6 +7,7 @@ const researchForm = document.getElementById('researchForm');
 const researchTopicInput = document.getElementById('researchTopic');
 const researchDepthInput = document.getElementById('researchDepth');
 const maxSourcesInput = document.getElementById('maxSources');
+const academicOnlyInput = document.getElementById('academicOnly');
 const startResearchBtn = document.getElementById('startResearchBtn');
 
 const researchProgress = document.getElementById('researchProgress');
@@ -85,6 +86,7 @@ async function handleSubmitResearch(event) {
     const topic = researchTopicInput.value.trim();
     const depth = parseInt(researchDepthInput.value);
     const maxSources = parseInt(maxSourcesInput.value);
+    const academicOnly = academicOnlyInput.checked;
 
     if (!topic) {
         showError('请输入研究主题');
@@ -105,7 +107,8 @@ async function handleSubmitResearch(event) {
             body: JSON.stringify({
                 topic,
                 depth,
-                max_sources: maxSources
+                max_sources: maxSources,
+                academic_only: academicOnly
             })
         });
 
